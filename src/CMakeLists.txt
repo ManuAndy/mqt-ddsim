@@ -22,7 +22,9 @@ add_library(
   ${PROJECT_SOURCE_DIR}/include/UnitarySimulator.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/UnitarySimulator.cpp
   ${PROJECT_SOURCE_DIR}/include/PathSimulator.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/PathSimulator.cpp)
+  ${CMAKE_CURRENT_SOURCE_DIR}/PathSimulator.cpp
+  ${PROJECT_SOURCE_DIR}/include/EntanglementSplitSimulator.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/EntanglementSplitSimulator.cpp)
 target_include_directories(
   ${PROJECT_NAME}
   PUBLIC $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/include>)

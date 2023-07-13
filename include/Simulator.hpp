@@ -50,6 +50,16 @@ public:
         return dd->measureAll(rootEdge, collapse, mt, epsilon);
     }
 
+    std::map<std::string, std::size_t> measureAllNonCollapsing(std::size_t shots, dd::vEdge edge) {
+        rootEdge = edge;
+        std::map<std::string, std::size_t> results;
+        for (std::size_t i = 0; i < shots; i++) {
+            const auto m = measureAll(false);
+            results[m]++;
+        }
+        return results;
+    }
+
     std::map<std::string, std::size_t> measureAllNonCollapsing(std::size_t shots) {
         std::map<std::string, std::size_t> results;
         for (std::size_t i = 0; i < shots; i++) {
