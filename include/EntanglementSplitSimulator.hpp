@@ -14,6 +14,7 @@
 template<class Config = dd::DDPackageConfig>
 class EntanglementSplitSimulator: public CircuitSimulator<Config> {
 public:
+
     EntanglementSplitSimulator(std::unique_ptr<qc::QuantumComputation>&& qc_,
                          const ApproximationInfo&                  approxInfo_):
             CircuitSimulator<Config>(std::move(qc_), approxInfo_) {
@@ -32,91 +33,83 @@ public:
         qc::CircuitOptimizer::removeFinalMeasurements(*(CircuitSimulator<Config>::qc));
     }
 
-    std::map<std::string, std::size_t> simulate(std::size_t shots) override;
-
-
-    template<class ReturnType = dd::ComplexValue>
-    [[nodiscard]] std::vector<ReturnType> getVectorFromHybridSimulation() const {
-        if (CircuitSimulator<Config>::getNumberOfQubits() >= 60) {
-            // On 64bit system the vector can hold up to (2^60)-1 elements, if memory permits
-            throw std::range_error("getVector only supports less than 60 qubits.");
-        }
-        if constexpr (std::is_same_v<ReturnType, decltype(finalAmplitudes)>) {
-            return finalAmplitudes;
-        }
-        std::vector<ReturnType> amplitudes;
-        std::transform(finalAmplitudes.begin(), finalAmplitudes.end(), std::back_inserter(amplitudes), [](std::complex<dd::fp> x) -> ReturnType { return {x.real(), x.imag()}; });
-        return amplitudes;
-    }
+    /** [copied from Simulator.hpp]
+     * Run the simulation in the (derived) class.
+     * @param shots number of shots to take from the final quantum state
+     * @return a map from the strings representing basis states to the number of times they have been measured
+     */
+    std::map<std::string, std::size_t> simulate(const std::size_t shots) override;
 
 private:
-    std::vector<std::complex<dd::fp>> finalAmplitudes{};
-
-
-    qc::VectorDD simulateSlicing(size_t nqubits, std::size_t controls);
 
     class Slice {
-    protected:
-        qc::Qubit nextControlIdx = 0;
-
-        std::size_t getNextControl() {
-            std::size_t idx = 1UL << nextControlIdx;
-            nextControlIdx++;
-            return controls & idx;
-        }
 
     public:
         qc::Qubit    start;
         qc::Qubit    end;
-        std::size_t  controls;
         qc::Qubit    nqubits;
         qc::VectorDD edge{};
 
-        explicit Slice(std::unique_ptr<dd::Package<Config>>& dd, const qc::Qubit start_, const qc::Qubit end_, const std::size_t controls_):
-                start(start_), end(end_), controls(controls_), nqubits(end - start + 1), edge(dd->makeZeroState(static_cast<dd::QubitCount>(nqubits), start_)) {
+        explicit Slice(std::unique_ptr<dd::Package<Config>>& dd, const qc::Qubit start_, const qc::Qubit end_):
+                start(start_), end(end_), nqubits(end - start + 1), edge(dd->makeZeroState(static_cast<dd::QubitCount>(nqubits), start)) {
             dd->incRef(edge);
         }
 
-        explicit Slice(std::unique_ptr<dd::Package<Config>>& dd, qc::VectorDD edge_, const qc::Qubit start_, const qc::Qubit end_, const std::size_t controls_):
-                start(start_), end(end_), controls(controls_), nqubits(end - start + 1), edge(edge_) {
+        explicit Slice(std::unique_ptr<dd::Package<Config>>& dd, qc::VectorDD edge_, const qc::Qubit start_, const qc::Qubit end_):
+                start(start_), end(end_), nqubits(end - start + 1), edge(edge_) {
             dd->incRef(edge);
         }
 
-        Slice combine(std::unique_ptr<dd::Package<Config>>& dd, std::vector<Slice> mp, Slice lower) {
-            if ((lower.start <= end && lower.start >= start) || (lower.end <= end && lower.end >= start)) {
-                return *this;
+        static Slice combine(std::unique_ptr<dd::Package<Config>>& dd, Slice& upper, Slice& lower) {
+            if (upper.end + 1 != lower.start) {
+                throw std::invalid_argument("Only adjacent slices can be combined for now.");
             }
-                dd->kronecker(edge, lower.edge);
-                // update data structures
-                for (qc::Qubit i = lower.start; i <= lower.end; ++i) {
-                    mp[i] = *this;
-                }
-                size_t startMin;
-                size_t endMax;
-                if (lower.start < start) {
-                    startMin = lower.start;
-                    endMax = end;
-                } else {
-                    startMin = start;
-                    endMax = lower.end;
-                }
-                // TODO: improve this part. For now we combine all the qubits between two slices to avoid problems.
-                for (qc::Qubit i = startMin; i < endMax; ++i) {
-                    if (&mp[i] != this && &mp[i] != this) {
-                        dd->kronecker(edge, mp[i].edge);
-                        for (qc::Qubit j = mp[i].start; j < mp[i].end; ++j) {
-                            // assign old qubits to the new slice in order not to use kronecker more than once for same slice
-                            mp[j] = *this;
-                        }
-                        mp[i] = *this;
-                    }
-                }
-                return Slice(dd, startMin, endMax, controls);
+            auto edge = dd->kronecker(lower.edge, upper.edge, false);
+
+            return Slice(dd, edge, upper.start, lower.end);
         }
 
-        // returns true if this operation was a split operation
-        bool apply(std::unique_ptr<dd::Package<Config>>& sliceDD, const std::unique_ptr<qc::Operation>& op);
+        void apply(std::unique_ptr<dd::Package<Config>>& sliceDD, const std::unique_ptr<qc::Operation>& op) {
+            const auto&       param = op->getParameter();
+            const auto&  opControls = op->getControls();
+            const auto&   opTargets = op->getTargets();
+            qc::StandardOperation newOp(nqubits, opControls, opTargets, op->getType(), param, start);
+            sliceDD->decRef(edge);
+            edge = sliceDD->multiply(dd::getDD(&newOp, sliceDD), edge, static_cast<dd::Qubit>(start));
+            sliceDD->incRef(edge);
+        }
+
+        friend bool operator < (Slice const& a, Slice const& b) {
+            return (a.start < b.start) || (a.end < b.end);
+        }
+
+        friend bool operator == (Slice const& a, Slice const& b) {
+            return (a.start == b.start) || (a.end == b.end);
+        }
+
+        friend bool operator != (Slice const& a, Slice const& b) {
+            return ! (a == b);
+        }
     };
+
+    // The uniontable maps every qubit to its slice where it is contained in (second entry in the tuple); the first entry
+    // denotes its relative position wihtin the slice
+    std::vector<Slice> uniontable{};
+
+    /**
+     * @brief Combines the slices of two different qubits x and y and updates all related datastructures
+     *
+     * @param dd
+     * @param x
+     * @param y
+     * @return true if two slices where combined
+     * @return false if qubits were already in the same slice
+     */
+    bool combine(std::unique_ptr<dd::Package<Config>>& dd, const qc::Qubit x, const qc::Qubit y);
+
+    qc::VectorDD simulateSlicing(const size_t nqubits);
+
+    void apply(std::unique_ptr<dd::Package<Config>>& sliceDD, const std::unique_ptr<qc::Operation>& op);
 };
 
 #endif //ENTANGLEMENTS_SPLIT_SIMULATOR_HPP
