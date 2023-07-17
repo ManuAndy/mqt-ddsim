@@ -5,7 +5,9 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#define NUMBER_OF_TIME_MEASUREMENTS 10
+enum {
+NumberOfTimeMeasurements = 10
+};
 
 template <
         class result_t   = std::chrono::milliseconds,
@@ -49,21 +51,21 @@ TEST(EntanglementSplitSimulatorDDSIM, grover5) {
 
     EntanglementSplitSimulator ddsim(std::move(qc));
 
-    std::vector<size_t> times;
+    std::vector<int64_t> times;
     std::map<std::string, std::size_t> resultAmp;
-    for (size_t i = 0; i < NUMBER_OF_TIME_MEASUREMENTS; ++i) {
+    for (size_t i = 0; i < NumberOfTimeMeasurements; ++i) {
         qc = std::make_unique<qc::QuantumComputation>("circuits/grover_5.qasm");
 
-        EntanglementSplitSimulator ddsim(std::move(qc));
+        EntanglementSplitSimulator ddsimNew(std::move(qc));
         auto start     = std::chrono::steady_clock::now();
-        resultAmp = ddsim.simulate(512);
+        resultAmp = ddsimNew.simulate(512);
         times.push_back(since(start).count());
     }
-    size_t sum = 0;
-    for (size_t i = 0; i < times.size(); ++i) {
-        sum += times[i];
+    int64_t sum = 0;
+    for (int64_t time : times) {
+        sum += time;
     }
-    std::cout << "Elapsed(ms)=" << sum / NUMBER_OF_TIME_MEASUREMENTS << "\n";
+    std::cout << "Elapsed(ms)=" << sum / NumberOfTimeMeasurements << "\n";
     for (const auto& entry: resultAmp) {
         std::cout << "resultAmp[" << entry.first << "] = " << entry.second << "\n";
     }
@@ -109,21 +111,21 @@ TEST(EntanglementSplitSimulatorDDSIM, grover5_simple) {
 
     CircuitSimulator ddsim(std::move(qc));
 
-    std::vector<size_t> times;
+    std::vector<int64_t> times;
     std::map<std::string, std::size_t> resultAmp;
-    for (size_t i = 0; i < NUMBER_OF_TIME_MEASUREMENTS; ++i) {
+    for (size_t i = 0; i < NumberOfTimeMeasurements; ++i) {
         qc = std::make_unique<qc::QuantumComputation>("circuits/grover_5.qasm");
 
-        CircuitSimulator ddsim(std::move(qc));
+        CircuitSimulator ddsimNew(std::move(qc));
         auto start     = std::chrono::steady_clock::now();
-        resultAmp = ddsim.simulate(512);
+        resultAmp = ddsimNew.simulate(512);
         times.push_back(since(start).count());
     }
-    size_t sum = 0;
-    for (size_t i = 0; i < times.size(); ++i) {
-        sum += times[i];
+    int64_t sum = 0;
+    for (int64_t time : times) {
+        sum += time;
     }
-    std::cout << "Elapsed(ms)=" << sum / NUMBER_OF_TIME_MEASUREMENTS << "\n";
+    std::cout << "Elapsed(ms)=" << sum / NumberOfTimeMeasurements << "\n";
     for (const auto& entry: resultAmp) {
         std::cout << "resultAmp[" << entry.first << "] = " << entry.second << "\n";
     }
@@ -169,21 +171,21 @@ TEST(EntanglementSplitSimulatorDDSIM, grover6) {
 
     EntanglementSplitSimulator ddsim(std::move(qc));
 
-    std::vector<size_t> times;
+    std::vector<int64_t> times;
     std::map<std::string, std::size_t> resultAmp;
-    for (size_t i = 0; i < NUMBER_OF_TIME_MEASUREMENTS; ++i) {
+    for (size_t i = 0; i < NumberOfTimeMeasurements; ++i) {
         qc = std::make_unique<qc::QuantumComputation>("circuits/grover_6.qasm");
 
-        EntanglementSplitSimulator ddsim(std::move(qc));
+        EntanglementSplitSimulator ddsimNew(std::move(qc));
         auto start     = std::chrono::steady_clock::now();
-        resultAmp = ddsim.simulate(512);
+        resultAmp = ddsimNew.simulate(512);
         times.push_back(since(start).count());
     }
-    size_t sum = 0;
-    for (size_t i = 0; i < times.size(); ++i) {
-        sum += times[i];
+    int64_t sum = 0;
+    for (int64_t time : times) {
+        sum += time;
     }
-    std::cout << "Elapsed(ms)=" << sum / NUMBER_OF_TIME_MEASUREMENTS << "\n";
+    std::cout << "Elapsed(ms)=" << sum / NumberOfTimeMeasurements << "\n";
     for (const auto& entry: resultAmp) {
         std::cout << "resultAmp[" << entry.first << "] = " << entry.second << "\n";
     }
@@ -194,20 +196,20 @@ TEST(EntanglementSplitSimulatorDDSIM, grover6_simple) {
 
     CircuitSimulator ddsim(std::move(qc));
 
-    std::vector<size_t> times;
+    std::vector<int64_t> times;
     std::map<std::string, std::size_t> resultAmp;
-    for (size_t i = 0; i < NUMBER_OF_TIME_MEASUREMENTS; ++i) {
+    for (size_t i = 0; i < NumberOfTimeMeasurements; ++i) {
         qc = std::make_unique<qc::QuantumComputation>("circuits/grover_6.qasm");
-        CircuitSimulator ddsim(std::move(qc));
+        CircuitSimulator ddsimNew(std::move(qc));
         auto start     = std::chrono::steady_clock::now();
-        resultAmp = ddsim.simulate(512);
+        resultAmp = ddsimNew.simulate(512);
         times.push_back(since(start).count());
     }
-    size_t sum = 0;
-    for (size_t i = 0; i < times.size(); ++i) {
-        sum += times[i];
+    int64_t sum = 0;
+    for (int64_t time : times) {
+        sum += time;
     }
-    std::cout << "Elapsed(ms)=" << sum / NUMBER_OF_TIME_MEASUREMENTS << "\n";
+    std::cout << "Elapsed(ms)=" << sum / NumberOfTimeMeasurements << "\n";
     for (const auto& entry: resultAmp) {
         std::cout << "resultAmp[" << entry.first << "] = " << entry.second << "\n";
     }
