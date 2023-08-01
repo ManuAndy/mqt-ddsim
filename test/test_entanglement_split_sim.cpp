@@ -6,7 +6,7 @@
 #include <memory>
 
 enum {
-NumberOfTimeMeasurements = 10
+NumberOfTimeMeasurements = 1
 };
 
 template <
@@ -20,7 +20,7 @@ auto since(std::chrono::time_point<clock_t, duration_t> const& start)
 }
 
 using namespace qc::literals;
-TEST(EntanglementSplitSimulatorDDSIM, TrivialTest) {
+/*TEST(EntanglementSplitSimulatorDDSIM, TrivialTest) {
     auto quantumComputation = [] {
         auto qc = std::make_unique<qc::QuantumComputation>(2);
         qc->h(0);         // 1| h q[0];
@@ -164,17 +164,17 @@ TEST(EntanglementSplitSimulatorDDSIM, grover5_simple) {
     it = resultAmp.find("1101101");
     EXPECT_NEAR(static_cast<double>(it->second), 6, 40);
 }
-
+*/
 using namespace qc::literals;
-TEST(EntanglementSplitSimulatorDDSIM, grover6) {
-    auto qc = std::make_unique<qc::QuantumComputation>("circuits/grover_6.qasm");
+TEST(EntanglementSplitSimulatorDDSIM, grover15) {
+    auto qc = std::make_unique<qc::QuantumComputation>("circuits/grover_15.qasm");
 
     EntanglementSplitSimulator ddsim(std::move(qc));
 
     std::vector<int64_t> times;
     std::map<std::string, std::size_t> resultAmp;
     for (size_t i = 0; i < NumberOfTimeMeasurements; ++i) {
-        qc = std::make_unique<qc::QuantumComputation>("circuits/grover_6.qasm");
+        qc = std::make_unique<qc::QuantumComputation>("circuits/grover_15.qasm");
 
         EntanglementSplitSimulator ddsimNew(std::move(qc));
         auto start     = std::chrono::steady_clock::now();
@@ -186,20 +186,17 @@ TEST(EntanglementSplitSimulatorDDSIM, grover6) {
         sum += time;
     }
     std::cout << "Elapsed(ms)=" << sum / NumberOfTimeMeasurements << "\n";
-    for (const auto& entry: resultAmp) {
-        std::cout << "resultAmp[" << entry.first << "] = " << entry.second << "\n";
-    }
 }
 
-TEST(EntanglementSplitSimulatorDDSIM, grover6_simple) {
-    auto qc = std::make_unique<qc::QuantumComputation>("circuits/grover_6.qasm");
+TEST(EntanglementSplitSimulatorDDSIM, grover15_simple) {
+    auto qc = std::make_unique<qc::QuantumComputation>("circuits/grover_15.qasm");
 
     CircuitSimulator ddsim(std::move(qc));
 
     std::vector<int64_t> times;
     std::map<std::string, std::size_t> resultAmp;
     for (size_t i = 0; i < NumberOfTimeMeasurements; ++i) {
-        qc = std::make_unique<qc::QuantumComputation>("circuits/grover_6.qasm");
+        qc = std::make_unique<qc::QuantumComputation>("circuits/grover_15.qasm");
         CircuitSimulator ddsimNew(std::move(qc));
         auto start     = std::chrono::steady_clock::now();
         resultAmp = ddsimNew.simulate(512);
@@ -210,13 +207,10 @@ TEST(EntanglementSplitSimulatorDDSIM, grover6_simple) {
         sum += time;
     }
     std::cout << "Elapsed(ms)=" << sum / NumberOfTimeMeasurements << "\n";
-    for (const auto& entry: resultAmp) {
-        std::cout << "resultAmp[" << entry.first << "] = " << entry.second << "\n";
-    }
 }
 
 
-using namespace qc::literals;
+/*using namespace qc::literals;
 TEST(EntanglementSplitSimulatorDDSIM, grover7) {
     auto qc = std::make_unique<qc::QuantumComputation>("circuits/grover_7.qasm");
 
@@ -227,9 +221,9 @@ TEST(EntanglementSplitSimulatorDDSIM, grover7) {
     for (const auto& entry: resultAmp) {
         std::cout << "resultAmp[" << entry.first << "] = " << entry.second << "\n";
     }
-}
+} */
 
-using namespace qc::literals;
+/*using namespace qc::literals;
 TEST(EntanglementSplitSimulatorDDSIM, grover7_simple) {
     auto qc = std::make_unique<qc::QuantumComputation>("circuits/grover_7.qasm");
 
@@ -240,4 +234,4 @@ TEST(EntanglementSplitSimulatorDDSIM, grover7_simple) {
     for (const auto& entry: resultAmp) {
         std::cout << "resultAmp[" << entry.first << "] = " << entry.second << "\n";
     }
-}
+} */

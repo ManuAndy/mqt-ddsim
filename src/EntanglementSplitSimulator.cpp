@@ -23,7 +23,7 @@ bool EntanglementSplitSimulator<Config>::combine(std::unique_ptr<dd::Package<Con
 }
 
 template<class Config>
-qc::VectorDD EntanglementSplitSimulator<Config>::simulateSlicing(const size_t nqubits) {
+std::map<std::string, std::size_t> EntanglementSplitSimulator<Config>::simulateSlicing(const std::size_t shots, const size_t nqubits) {
     auto sliceDD = std::make_unique<dd::Package<Config>>(nqubits);
 
     for (qc::Qubit i = 0; i < nqubits; ++i) {
@@ -43,8 +43,8 @@ qc::VectorDD EntanglementSplitSimulator<Config>::simulateSlicing(const size_t nq
     }
     auto edge = uniontable.at(0).edge;
     std::cout << "length " << uniontable.at(0).nqubits << "\n";
-
-    return edge;
+    auto result = Simulator<Config>::measureAllNonCollapsing(shots, edge);
+    return result;
 }
 
 template<class Config>
@@ -80,9 +80,7 @@ void EntanglementSplitSimulator<Config>::apply(std::unique_ptr<dd::Package<Confi
 template<class Config>
 std::map<std::string, std::size_t> EntanglementSplitSimulator<Config>::simulate(const std::size_t shots) {
     auto nqubits                = CircuitSimulator<Config>::getNumberOfQubits();
-    auto edge = simulateSlicing(nqubits);
-    // measure qubits
-    auto result = Simulator<Config>::measureAllNonCollapsing(shots, edge);
+    auto result = simulateSlicing(shots, nqubits);
     return result;
 }
 

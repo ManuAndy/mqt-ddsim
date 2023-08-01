@@ -107,7 +107,7 @@ private:
      */
     bool combine(std::unique_ptr<dd::Package<Config>>& dd, const qc::Qubit x, const qc::Qubit y);
 
-    qc::VectorDD simulateSlicing(const size_t nqubits);
+    std::map<std::string, std::size_t> simulateSlicing(const std::size_t shots, const size_t nqubits);
 
     void apply(std::unique_ptr<dd::Package<Config>>& sliceDD, const std::unique_ptr<qc::Operation>& op);
 };
