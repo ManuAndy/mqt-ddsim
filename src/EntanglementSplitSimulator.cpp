@@ -36,13 +36,11 @@ std::map<std::string, std::size_t> EntanglementSplitSimulator<Config>::simulateS
         apply(sliceDD, op);
         sliceDD->garbageCollect();
     }
-    std::cout << "length " << uniontable.at(0).nqubits << "\n";
     // finally combine all the dds
     for (qc::Qubit i = 0; i < nqubits; i ++) {
         combine(sliceDD, 0, i);
     }
     auto edge = uniontable.at(0).edge;
-    std::cout << "length " << uniontable.at(0).nqubits << "\n";
     auto result = Simulator<Config>::measureAllNonCollapsing(shots, edge);
     return result;
 }
