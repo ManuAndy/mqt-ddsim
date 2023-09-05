@@ -22,7 +22,7 @@ auto since(std::chrono::time_point<clock_t, duration_t> const& start)
 using namespace qc::literals;
 TEST(EntanglementSplitSimulatorDDSIM, TrivialTest) {
     auto quantumComputation = [] {
-        auto qc = std::make_unique<qc::QuantumComputation>(3);
+        auto qc = std::make_unique<qc::QuantumComputation>(2);
         qc->h(0);         // 1| h q[0];
         qc->x(1, {0_pc}); // 2| cx q[0], q[1];
         return qc;

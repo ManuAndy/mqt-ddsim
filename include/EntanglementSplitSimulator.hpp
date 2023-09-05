@@ -51,7 +51,7 @@ private:
         qc::VectorDD edge{};
 
         explicit Slice(std::unique_ptr<dd::Package<Config>>& dd, const qc::Qubit start_, const qc::Qubit end_):
-                start(start_), end(end_), nqubits(end - start + 1), edge(dd->makeZeroState(static_cast<dd::QubitCount>(nqubits), start)) {
+                start(start_), end(end_), nqubits(end - start + 1), edge(dd->makeZeroState(static_cast<dd::Qubit >(nqubits), start)) {
             dd->incRef(edge);
         }
 
