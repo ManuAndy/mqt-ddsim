@@ -28,11 +28,15 @@ template<class Config>
 void StochasticNoiseSimulator<Config>::perfectSimulationRun() {
     const auto nQubits = qc->getNqubits();
 
-    Simulator<Config>::rootEdge = Simulator<Config>::dd->makeZeroState(static_cast<dd::QubitCount>(nQubits));
+    Simulator<Config>::rootEdge = Simulator<Config>::dd->makeZeroState(static_cast<dd::Qubit>(nQubits));
     Simulator<Config>::dd->incRef(Simulator<Config>::rootEdge);
 
     std::map<std::size_t, bool> classicValues;
     for (auto& op: *qc) {
+        if (op->getType() == qc::Barrier) {
+            continue;
+        }
+
         if (op->isNonUnitaryOperation()) {
             if (auto* nuOp = dynamic_cast<qc::NonUnitaryOperation*>(op.get())) {
                 if (op->getType() == qc::Measure) {
@@ -46,8 +50,6 @@ void StochasticNoiseSimulator<Config>::perfectSimulationRun() {
                         assert(result == '0' || result == '1');
                         classicValues[classic.at(i)] = (result == '1');
                     }
-                } else if (op->getType() == qc::Barrier) {
-                    continue;
                 } else {
                     throw std::runtime_error(std::string("Unsupported non-unitary functionality '") + op->getName() + "'.");
                 }
@@ -172,7 +174,7 @@ void StochasticNoiseSimulator<Config>::runStochSimulationForId(std::size_t      
         auto localDD                      = std::make_unique<dd::Package<StochasticNoiseSimulatorDDPackageConfig>>(qc->getNqubits());
         auto stochasticNoiseFunctionality = dd::StochasticNoiseFunctionality<StochasticNoiseSimulatorDDPackageConfig>(
                 localDD,
-                static_cast<dd::QubitCount>(nQubits),
+                static_cast<dd::Qubit>(nQubits),
                 noiseProbability,
                 amplitudeDampingProb,
                 multiQubitGateFactor,
@@ -183,10 +185,14 @@ void StochasticNoiseSimulator<Config>::runStochSimulationForId(std::size_t      
         std::size_t opCount     = 0U;
         std::size_t approxCount = 0U;
 
-        dd::vEdge localRootEdge = localDD->makeZeroState(static_cast<dd::QubitCount>(nQubits));
+        dd::vEdge localRootEdge = localDD->makeZeroState(static_cast<dd::Qubit>(nQubits));
         localDD->incRef(localRootEdge);
 
         for (auto& op: *qc) {
+            if (op->getType() == qc::Barrier) {
+                continue;
+            }
+
             if (!op->isUnitary() && !(op->isClassicControlledOperation())) {
                 if (auto* nuOp = dynamic_cast<qc::NonUnitaryOperation*>(op.get())) {
                     if (nuOp->getType() == qc::Measure) {
@@ -201,10 +207,6 @@ void StochasticNoiseSimulator<Config>::runStochSimulationForId(std::size_t      
                             classicValues[classic.at(i)] = (result == '0');
                         }
                     } else {
-                        //Skipping barrier
-                        if (op->getType() == qc::Barrier) {
-                            continue;
-                        }
                         throw std::runtime_error("Unsupported non-unitary functionality.");
                     }
                 } else {
@@ -217,10 +219,13 @@ void StochasticNoiseSimulator<Config>::runStochSimulationForId(std::size_t      
                 if (op->isClassicControlledOperation()) {
                     // Check if the operation is controlled by a classical register
                     auto* classicOp = dynamic_cast<qc::ClassicControlledOperation*>(op.get());
-                    bool  executeOp = true;
-                    auto  expValue  = classicOp->getExpectedValue();
+                    if (classicOp == nullptr) {
+                        throw std::runtime_error("Dynamic cast to ClassicControlledOperation* failed.");
+                    }
+                    bool executeOp = true;
+                    auto expValue  = classicOp->getExpectedValue();
 
-                    for (auto i = static_cast<std::size_t>(classicOp->getControlRegister().first); i < classicOp->getControlRegister().second; i++) {
+                    for (auto i = classicOp->getControlRegister().first; i < classicOp->getControlRegister().second; i++) {
                         if (static_cast<std::uint64_t>(classicValues[i]) != (expValue % 2U)) {
                             executeOp = false;
                             break;

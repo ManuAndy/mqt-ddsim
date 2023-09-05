@@ -194,7 +194,7 @@ void PathSimulator<Config>::generateBracketSimulationPath(std::size_t bracketSiz
     std::size_t memoryLeft       = 0;
     std::size_t bracketMemory    = 0;
     std::size_t opMemory         = 0;
-    // Sequentially adding tasks for the first braket
+    // Sequentially adding tasks for the first bracket
     for (std::size_t i = 0; i < bracketSize; i++) {
         if (i == 0) {
             components.emplace_back(0, 1);
@@ -360,7 +360,7 @@ void PathSimulator<Config>::constructTaskGraph() {
     const auto& steps = simulationPath.steps;
 
     if (path.empty()) {
-        Simulator<Config>::rootEdge = Simulator<Config>::dd->makeZeroState(static_cast<dd::QubitCount>(CircuitSimulator<Config>::qc->getNqubits()));
+        Simulator<Config>::rootEdge = Simulator<Config>::dd->makeZeroState(static_cast<dd::Qubit>(CircuitSimulator<Config>::qc->getNqubits()));
         return;
     }
 
@@ -374,7 +374,7 @@ void PathSimulator<Config>::constructTaskGraph() {
         if (leftID < nleaves) {
             if (leftID == 0) {
                 // initial state
-                qc::VectorDD zeroState = Simulator<Config>::dd->makeZeroState(static_cast<dd::QubitCount>(CircuitSimulator<Config>::qc->getNqubits()));
+                qc::VectorDD zeroState = Simulator<Config>::dd->makeZeroState(static_cast<dd::Qubit>(CircuitSimulator<Config>::qc->getNqubits()));
                 Simulator<Config>::dd->incRef(zeroState);
                 results.emplace(leftID, zeroState);
             } else {

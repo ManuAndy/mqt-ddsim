@@ -1,21 +1,22 @@
 """Backend for DDSIM."""
+from __future__ import annotations
 
 import logging
 
 from qiskit.providers.models import BackendConfiguration
 
-from mqt.ddsim import __version__
-from mqt.ddsim.qasmsimulator import QasmSimulatorBackend
+from . import __version__
+from .qasmsimulator import QasmSimulatorBackend
 
 logger = logging.getLogger(__name__)
 
 
 class StatevectorSimulatorBackend(QasmSimulatorBackend):
-    """Python interface to MQT DDSIM"""
+    """Python interface to MQT DDSIM."""
 
     SHOW_STATE_VECTOR = True
 
-    def __init__(self, configuration=None, provider=None):
+    def __init__(self, configuration=None, provider=None) -> None:
         conf = {
             "backend_name": "statevector_simulator",
             "backend_version": __version__,

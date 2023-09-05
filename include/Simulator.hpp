@@ -94,13 +94,13 @@ public:
         return results;
     }
 
-    [[nodiscard]] virtual std::size_t getActiveNodeCount() const { return dd->vUniqueTable.getActiveNodeCount(); }
+    [[nodiscard]] virtual std::size_t getActiveNodeCount() const { return dd->template getUniqueTable<dd::vNode>().getStats().activeEntryCount; }
 
-    [[nodiscard]] virtual std::size_t getMaxNodeCount() const { return dd->vUniqueTable.getMaxActiveNodes(); }
+    [[nodiscard]] virtual std::size_t getMaxNodeCount() const { return dd->template getUniqueTable<dd::vNode>().getStats().peakActiveEntryCount; }
 
-    [[nodiscard]] virtual std::size_t getMaxMatrixNodeCount() const { return dd->mUniqueTable.getMaxActiveNodes(); }
+    [[nodiscard]] virtual std::size_t getMaxMatrixNodeCount() const { return dd->template getUniqueTable<dd::mNode>().getStats().activeEntryCount; }
 
-    [[nodiscard]] virtual std::size_t getMatrixActiveNodeCount() const { return dd->mUniqueTable.getActiveNodeCount(); }
+    [[nodiscard]] virtual std::size_t getMatrixActiveNodeCount() const { return dd->template getUniqueTable<dd::mNode>().getStats().activeEntryCount; }
 
     [[nodiscard]] virtual std::size_t countNodesFromRoot() { return dd->size(rootEdge); }
 
@@ -118,7 +118,7 @@ public:
         std::string binary(numberOfQubits, '0');
         for (std::size_t j = 0; j < numberOfQubits; ++j) {
             if ((value & (1U << j)) != 0U) {
-                binary[j] = '1';
+                binary[numberOfQubits - 1 - j] = '1';
             }
         }
         return binary;
@@ -128,7 +128,7 @@ public:
         dd->cn.setTolerance(tolerance);
     }
     [[nodiscard]] dd::fp getTolerance() const {
-        return dd->cn.complexTable.tolerance();
+        return dd::RealNumber::eps;
     }
 
     [[nodiscard]] std::vector<std::priority_queue<std::pair<double, dd::vNode*>, std::vector<std::pair<double, dd::vNode*>>>> getNodeContributions(const dd::vEdge& edge) const;

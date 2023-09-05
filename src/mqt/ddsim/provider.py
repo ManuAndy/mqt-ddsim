@@ -1,19 +1,21 @@
+from __future__ import annotations
+
 from qiskit.providers import ProviderV1
 from qiskit.providers.providerutils import filter_backends
 
-from mqt.ddsim.hybridqasmsimulator import HybridQasmSimulatorBackend
-from mqt.ddsim.hybridstatevectorsimulator import HybridStatevectorSimulatorBackend
-from mqt.ddsim.pathqasmsimulator import PathQasmSimulatorBackend
-from mqt.ddsim.pathstatevectorsimulator import PathStatevectorSimulatorBackend
-from mqt.ddsim.qasmsimulator import QasmSimulatorBackend
-from mqt.ddsim.statevectorsimulator import StatevectorSimulatorBackend
-from mqt.ddsim.unitarysimulator import UnitarySimulatorBackend
+from .hybridqasmsimulator import HybridQasmSimulatorBackend
+from .hybridstatevectorsimulator import HybridStatevectorSimulatorBackend
+from .pathqasmsimulator import PathQasmSimulatorBackend
+from .pathstatevectorsimulator import PathStatevectorSimulatorBackend
+from .qasmsimulator import QasmSimulatorBackend
+from .statevectorsimulator import StatevectorSimulatorBackend
+from .unitarysimulator import UnitarySimulatorBackend
 
 
 class DDSIMProvider(ProviderV1):
     _BACKENDS = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         if DDSIMProvider._BACKENDS is None:
             DDSIMProvider._BACKENDS = [
                 ("qasm_simulator", QasmSimulatorBackend, None, None),
@@ -43,5 +45,5 @@ class DDSIMProvider(ProviderV1):
                 backends.append(backend_cls(**opts))
         return filter_backends(backends, filters=filters, **kwargs)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "DDSIMProvider"

@@ -1,13 +1,14 @@
 """Backend for DDSIM Unitary Simulator."""
+from __future__ import annotations
 
 import logging
 import time
 import uuid
 import warnings
 from math import log2, sqrt
-from typing import List, Union
 
 import numpy as np
+import numpy.typing as npt
 from qiskit import QiskitError, QuantumCircuit
 from qiskit.compiler import assemble
 from qiskit.providers import BackendV1, Options
@@ -16,9 +17,10 @@ from qiskit.qobj import PulseQobj, QasmQobj, QasmQobjExperiment, Qobj
 from qiskit.result import Result
 from qiskit.utils.multiprocessing import local_hardware_info
 
-from mqt.ddsim import ConstructionMode, UnitarySimulator, __version__, get_matrix
-from mqt.ddsim.error import DDSIMError
-from mqt.ddsim.job import DDSIMJob
+from . import __version__
+from .error import DDSIMError
+from .job import DDSIMJob
+from .pyddsim import ConstructionMode, UnitarySimulator, get_matrix
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +28,7 @@ logger = logging.getLogger(__name__)
 class UnitarySimulatorBackend(BackendV1):
     """Decision diagram-based unitary simulator."""
 
-    def __init__(self, configuration=None, provider=None, **fields):
+    def __init__(self, configuration=None, provider=None, **fields) -> None:
         conf = {
             "backend_name": "unitary_simulator",
             "backend_version": __version__,
@@ -102,7 +104,7 @@ class UnitarySimulatorBackend(BackendV1):
     def _default_options(cls):
         return Options(shots=1, mode="recursive", parameter_binds=None)
 
-    def run(self, quantum_circuits: Union[QuantumCircuit, List[QuantumCircuit]], **options):
+    def run(self, quantum_circuits: QuantumCircuit | list[QuantumCircuit], **options):
         if isinstance(quantum_circuits, (QasmQobj, PulseQobj)):
             msg = "QasmQobj and PulseQobj are not supported."
             raise QiskitError(msg)
@@ -162,7 +164,9 @@ class UnitarySimulatorBackend(BackendV1):
         sim = UnitarySimulator(qobj_experiment, seed=seed, mode=construction_mode)
         sim.construct()
         # Add extract resulting matrix from final DD and write data
-        unitary = np.zeros((2**qobj_experiment.header.n_qubits, 2**qobj_experiment.header.n_qubits), dtype=complex)
+        unitary: npt.NDArray[np.complex_] = np.zeros(
+            (2**qobj_experiment.header.n_qubits, 2**qobj_experiment.header.n_qubits), dtype=np.complex_
+        )
         get_matrix(sim, unitary)
         data = {
             "unitary": unitary,
@@ -185,7 +189,7 @@ class UnitarySimulatorBackend(BackendV1):
         """Semantic validations of the qobj which cannot be done via schemas.
         Some of these may later move to backend schemas.
         1. No shots
-        2. No measurements in the middle
+        2. No measurements in the middle.
         """
         n_qubits = qobj.config.n_qubits
         max_qubits = self.configuration().n_qubits
